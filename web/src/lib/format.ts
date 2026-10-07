@@ -23,6 +23,19 @@ export function formatData(d: MaybeDate): string {
   return d ? dataFmt.format(d) : "—";
 }
 
+// Colunas @db.Date chegam como meia-noite UTC: formatar em São Paulo voltaria um dia.
+const dataCivilFmt = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "UTC",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+/** Para datas sem horário (colunas @db.Date: mandato, protocolo...). */
+export function formatDataCivil(d: MaybeDate): string {
+  return d ? dataCivilFmt.format(d) : "—";
+}
+
 export function formatHora(d: MaybeDate): string {
   return d ? horaFmt.format(d) : "—";
 }
