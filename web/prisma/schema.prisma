@@ -1,0 +1,258 @@
+// Schema do Radar PA. Os nomes de tabela/coluna em snake_case são o contrato
+// compartilhado com os coletores Python (collectors/), que gravam via SQL puro.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Legislatura {
+  id        Int      @id @default(autoincrement())
+  numero    Int      @unique
+  inicio    DateTime @db.Date
+  fim       DateTime @db.Date
+  descricao String?
+
+  vereadores   Vereador[]
+  mesaDiretora MesaDiretora[]
+
+  @@map("legislaturas")
+}
+
+model Vereador {
+  id              Int       @id @default(autoincrement())
+  gwlegisId       Int?      @unique @map("gwlegis_id")
+  nome            String
+  nomeParlamentar String    @map("nome_parlamentar")
+  partido         String
+  fotoUrl         String?   @map("foto_url")
+  email           String?
+  status          String    @default("ativo")
+  legislaturaId   Int?      @map("legislatura_id")
+  fonteUrl        String    @map("fonte_url")
+  coletadoEm      DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+  atualizadoEm    DateTime  @default(now()) @map("atualizado_em") @db.Timestamptz
+
+  legislatura       Legislatura?        @relation(fields: [legislaturaId], references: [id])
+  mesaDiretora      MesaDiretora[]
+  comissoes         ComissaoMembro[]
+  presencas         SessaoPresenca[]
+  votos             Voto[]
+  proposicoes       ProposicaoAutor[]
+
+  @@map("vereadores")
+}
+
+model MesaDiretora {
+  id            Int       @id @default(autoincrement())
+  vereadorId    Int       @map("vereador_id")
+  cargo         String
+  legislaturaId Int?      @map("legislatura_id")
+  inicio        DateTime? @db.Date
+  fim           DateTime? @db.Date
+  fonteUrl      String    @map("fonte_url")
+  coletadoEm    DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+
+  vereador    Vereador     @relation(fields: [vereadorId], references: [id])
+  legislatura Legislatura? @relation(fields: [legislaturaId], references: [id])
+
+  @@unique([vereadorId, cargo, legislaturaId])
+  @@map("mesa_diretora")
+}
+
+model Comissao {
+  id         Int      @id @default(autoincrement())
+  gwlegisId  Int?     @unique @map("gwlegis_id")
+  sigla      String
+  nome       String
+  tipo       String   @default("permanente")
+  fonteUrl   String   @map("fonte_url")
+  coletadoEm DateTime @default(now()) @map("coletado_em") @db.Timestamptz
+
+  membros ComissaoMembro[]
+
+  @@map("comissoes")
+}
+
+model ComissaoMembro {
+  id         Int      @id @default(autoincrement())
+  comissaoId Int      @map("comissao_id")
+  vereadorId Int      @map("vereador_id")
+  cargo      String   @default("membro")
+  fonteUrl   String   @map("fonte_url")
+  coletadoEm DateTime @default(now()) @map("coletado_em") @db.Timestamptz
+
+  comissao Comissao @relation(fields: [comissaoId], references: [id])
+  vereador Vereador @relation(fields: [vereadorId], references: [id])
+
+  @@unique([comissaoId, vereadorId])
+  @@map("comissao_membros")
+}
+
+model Sessao {
+  id         Int       @id @default(autoincrement())
+  gwlegisId  Int?      @unique @map("gwlegis_id")
+  numero     Int
+  ano        Int
+  tipo       String
+  dataInicio DateTime  @map("data_inicio") @db.Timestamptz
+  dataFim    DateTime? @map("data_fim") @db.Timestamptz
+  status     String    @default("Encerrada")
+  titulo     String?
+  pautaUrl   String?   @map("pauta_url")
+  ataUrl     String?   @map("ata_url")
+  videoUrl   String?   @map("video_url")
+  fonteUrl   String    @map("fonte_url")
+  coletadoEm DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+
+  presencas SessaoPresenca[]
+  votacoes  Votacao[]
+
+  @@unique([numero, tipo, ano])
+  @@index([dataInicio(sort: Desc)], map: "idx_sessoes_data")
+  @@index([titulo(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_sessoes_titulo_trgm")
+  @@map("sessoes")
+}
+
+model SessaoPresenca {
+  id         Int      @id @default(autoincrement())
+  sessaoId   Int      @map("sessao_id")
+  vereadorId Int      @map("vereador_id")
+  presente   Boolean  @default(true)
+  fonteUrl   String   @map("fonte_url")
+  coletadoEm DateTime @default(now()) @map("coletado_em") @db.Timestamptz
+
+  sessao   Sessao   @relation(fields: [sessaoId], references: [id])
+  vereador Vereador @relation(fields: [vereadorId], references: [id])
+
+  @@unique([sessaoId, vereadorId])
+  @@map("sessao_presencas")
+}
+
+model Proposicao {
+  id            Int       @id @default(autoincrement())
+  gwlegisId     Int?      @unique @map("gwlegis_id")
+  tipo          String
+  numero        Int
+  ano           Int
+  titulo        String?
+  ementa        String?
+  status        String?
+  dataProtocolo DateTime? @map("data_protocolo") @db.Date
+  link          String?
+  fonteUrl      String    @map("fonte_url")
+  coletadoEm    DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+  atualizadoEm  DateTime  @default(now()) @map("atualizado_em") @db.Timestamptz
+
+  autores  ProposicaoAutor[]
+  votacoes Votacao[]
+
+  // `titulo` entra na chave porque o export do GWLegis repete (tipo, numero, ano)
+  // para pareceres distintos (ex.: "Parecer Nº 1 ao PL 1716" e "ao PL 1717").
+  @@unique([tipo, numero, ano, titulo])
+  @@index([tipo, ano], map: "idx_proposicoes_tipo_ano")
+  @@index([ementa(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_proposicoes_ementa_trgm")
+  @@index([titulo(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_proposicoes_titulo_trgm")
+  @@map("proposicoes")
+}
+
+model ProposicaoAutor {
+  id           Int    @id @default(autoincrement())
+  proposicaoId Int    @map("proposicao_id")
+  vereadorId   Int    @map("vereador_id")
+  tipo         String @default("autor")
+
+  proposicao Proposicao @relation(fields: [proposicaoId], references: [id])
+  vereador   Vereador   @relation(fields: [vereadorId], references: [id])
+
+  @@unique([proposicaoId, vereadorId, tipo])
+  @@map("proposicao_autores")
+}
+
+model Votacao {
+  id           Int       @id @default(autoincrement())
+  sessaoId     Int       @map("sessao_id")
+  proposicaoId Int?      @map("proposicao_id")
+  descricao    String
+  resultado    String?
+  tipoVotacao  String?   @map("tipo_votacao")
+  data         DateTime? @db.Timestamptz
+  fonteUrl     String    @map("fonte_url")
+  coletadoEm   DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+
+  sessao     Sessao      @relation(fields: [sessaoId], references: [id])
+  proposicao Proposicao? @relation(fields: [proposicaoId], references: [id])
+  votos      Voto[]
+
+  @@unique([sessaoId, descricao])
+  @@index([sessaoId], map: "idx_votacoes_sessao")
+  @@map("votacoes")
+}
+
+model Voto {
+  id         Int      @id @default(autoincrement())
+  votacaoId  Int      @map("votacao_id")
+  vereadorId Int      @map("vereador_id")
+  voto       String
+  fonteUrl   String   @map("fonte_url")
+  coletadoEm DateTime @default(now()) @map("coletado_em") @db.Timestamptz
+
+  votacao  Votacao  @relation(fields: [votacaoId], references: [id])
+  vereador Vereador @relation(fields: [vereadorId], references: [id])
+
+  @@unique([votacaoId, vereadorId])
+  @@index([vereadorId], map: "idx_votos_vereador")
+  @@map("votos")
+}
+
+model Noticia {
+  id             Int       @id @default(autoincrement())
+  titulo         String
+  url            String    @unique
+  dataPublicacao DateTime? @map("data_publicacao") @db.Timestamptz
+  resumo         String?
+  fonteUrl       String    @map("fonte_url")
+  coletadoEm     DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+
+  @@map("noticias")
+}
+
+model NotaPessoal {
+  id           Int      @id @default(autoincrement())
+  tipoAlvo     String   @map("tipo_alvo")
+  alvoId       Int      @map("alvo_id")
+  texto        String
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  @@index([tipoAlvo, alvoId], map: "idx_notas_alvo")
+  @@map("notas_pessoais")
+}
+
+model ColetaLog {
+  id        Int       @id @default(autoincrement())
+  coletor   String
+  inicio    DateTime  @db.Timestamptz
+  fim       DateTime? @db.Timestamptz
+  status    String
+  registros Int       @default(0)
+  detalhes  String?
+  erro      String?
+
+  @@map("coleta_logs")
+}
+
+model Fonte {
+  id            Int      @id @default(autoincrement())
+  url           String
+  dataColeta    DateTime @default(now()) @map("data_coleta") @db.Timestamptz
+  tipo          String?
+  tabelaDestino String?  @map("tabela_destino")
+  registroId    Int?     @map("registro_id")
+
+  @@map("fontes")
+}

@@ -1,0 +1,11 @@
+# Python
+collectors/.venv/
+__pycache__/
+.pytest_cache/
+
+# Claude Code (config local da máquina)
+.claude/settings.local.json
+
+# Sistema
+.DS_Store
+Thumbs.db

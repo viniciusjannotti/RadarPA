@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* Tema escuro é o padrão ("radar"); o claro entra via data-theme="light" no <html>. */
+:root {
+  --bg: #070d1a;
+  --bg-glow-1: rgba(37, 99, 235, 0.18);
+  --bg-glow-2: rgba(16, 185, 129, 0.12);
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-strong: rgba(255, 255, 255, 0.08);
+  --border: rgba(148, 163, 184, 0.16);
+  --text: #e6edf7;
+  --text-muted: #8b9ab3;
+  --accent: #3b82f6;
+  --accent-soft: rgba(59, 130, 246, 0.16);
+  --accent-2: #10b981;
+  --accent-2-soft: rgba(16, 185, 129, 0.16);
+  --danger: #f43f5e;
+  --nav-bg: rgba(7, 13, 26, 0.82);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f3f6fb;
+  --bg-glow-1: rgba(37, 99, 235, 0.1);
+  --bg-glow-2: rgba(16, 185, 129, 0.08);
+  --surface: rgba(255, 255, 255, 0.75);
+  --surface-strong: #ffffff;
+  --border: rgba(15, 23, 42, 0.1);
+  --text: #0f172a;
+  --text-muted: #55637a;
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --accent-2: #059669;
+  --accent-2-soft: rgba(5, 150, 105, 0.1);
+  --danger: #e11d48;
+  --nav-bg: rgba(243, 246, 251, 0.85);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-line: var(--border);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-2: var(--accent-2);
+  --color-accent-2-soft: var(--accent-2-soft);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background:
+    radial-gradient(60rem 30rem at 10% -10%, var(--bg-glow-1), transparent 60%),
+    radial-gradient(50rem 30rem at 110% 10%, var(--bg-glow-2), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@utility card {
+  @apply rounded-2xl border border-line bg-surface backdrop-blur-md shadow-[0_8px_24px_-12px_rgba(0,0,0,0.45)];
+}
+
+@utility card-link {
+  @apply card block transition duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:bg-surface-strong focus-visible:outline-2 focus-visible:outline-accent;
+}
+
+@utility chip {
+  @apply inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm text-muted transition hover:text-fg;
+}
+
+@utility chip-active {
+  @apply border-accent/60 bg-accent-soft text-fg;
+}
+
+@utility skeleton {
+  @apply animate-pulse rounded-xl bg-surface-strong;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
