@@ -24,25 +24,25 @@ model Legislatura {
 }
 
 model Vereador {
-  id              Int       @id @default(autoincrement())
-  gwlegisId       Int?      @unique @map("gwlegis_id")
+  id              Int      @id @default(autoincrement())
+  gwlegisId       Int?     @unique @map("gwlegis_id")
   nome            String
-  nomeParlamentar String    @map("nome_parlamentar")
+  nomeParlamentar String   @map("nome_parlamentar")
   partido         String
-  fotoUrl         String?   @map("foto_url")
+  fotoUrl         String?  @map("foto_url")
   email           String?
-  status          String    @default("ativo")
-  legislaturaId   Int?      @map("legislatura_id")
-  fonteUrl        String    @map("fonte_url")
-  coletadoEm      DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
-  atualizadoEm    DateTime  @default(now()) @map("atualizado_em") @db.Timestamptz
+  status          String   @default("ativo")
+  legislaturaId   Int?     @map("legislatura_id")
+  fonteUrl        String   @map("fonte_url")
+  coletadoEm      DateTime @default(now()) @map("coletado_em") @db.Timestamptz
+  atualizadoEm    DateTime @default(now()) @map("atualizado_em") @db.Timestamptz
 
-  legislatura       Legislatura?        @relation(fields: [legislaturaId], references: [id])
-  mesaDiretora      MesaDiretora[]
-  comissoes         ComissaoMembro[]
-  presencas         SessaoPresenca[]
-  votos             Voto[]
-  proposicoes       ProposicaoAutor[]
+  legislatura  Legislatura?      @relation(fields: [legislaturaId], references: [id])
+  mesaDiretora MesaDiretora[]
+  comissoes    ComissaoMembro[]
+  presencas    SessaoPresenca[]
+  votos        Voto[]
+  proposicoes  ProposicaoAutor[]
 
   @@map("vereadores")
 }
@@ -94,20 +94,22 @@ model ComissaoMembro {
 }
 
 model Sessao {
-  id         Int       @id @default(autoincrement())
-  gwlegisId  Int?      @unique @map("gwlegis_id")
-  numero     Int
-  ano        Int
-  tipo       String
-  dataInicio DateTime  @map("data_inicio") @db.Timestamptz
-  dataFim    DateTime? @map("data_fim") @db.Timestamptz
-  status     String    @default("Encerrada")
-  titulo     String?
-  pautaUrl   String?   @map("pauta_url")
-  ataUrl     String?   @map("ata_url")
-  videoUrl   String?   @map("video_url")
-  fonteUrl   String    @map("fonte_url")
-  coletadoEm DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+  id                    Int       @id @default(autoincrement())
+  gwlegisId             Int?      @unique @map("gwlegis_id")
+  numero                Int
+  ano                   Int
+  tipo                  String
+  dataInicio            DateTime  @map("data_inicio") @db.Timestamptz
+  dataFim               DateTime? @map("data_fim") @db.Timestamptz
+  status                String    @default("Encerrada")
+  titulo                String?
+  pautaUrl              String?   @map("pauta_url")
+  ataUrl                String?   @map("ata_url")
+  videoUrl              String?   @map("video_url")
+  fonteUrl              String    @map("fonte_url")
+  coletadoEm            DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+  // Última vez que o coletor de votações olhou os boletins desta sessão.
+  boletinsVerificadosEm DateTime? @map("boletins_verificados_em") @db.Timestamptz
 
   presencas SessaoPresenca[]
   votacoes  Votacao[]
@@ -123,6 +125,7 @@ model SessaoPresenca {
   sessaoId   Int      @map("sessao_id")
   vereadorId Int      @map("vereador_id")
   presente   Boolean  @default(true)
+  situacao   String? // PRESENTE | AUSENTE | JUSTIFICADO | PENDENTE (texto do boletim)
   fonteUrl   String   @map("fonte_url")
   coletadoEm DateTime @default(now()) @map("coletado_em") @db.Timestamptz
 
@@ -174,15 +177,20 @@ model ProposicaoAutor {
 }
 
 model Votacao {
-  id           Int       @id @default(autoincrement())
-  sessaoId     Int       @map("sessao_id")
-  proposicaoId Int?      @map("proposicao_id")
-  descricao    String
-  resultado    String?
-  tipoVotacao  String?   @map("tipo_votacao")
-  data         DateTime? @db.Timestamptz
-  fonteUrl     String    @map("fonte_url")
-  coletadoEm   DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
+  id            Int       @id @default(autoincrement())
+  sessaoId      Int       @map("sessao_id")
+  proposicaoId  Int?      @map("proposicao_id")
+  descricao     String
+  ordem         Int?
+  legenda       String? // "1ª Votação", "Única Votação"...
+  autoria       String?
+  assunto       String?
+  resultado     String?
+  tipoAprovacao String?   @map("tipo_aprovacao")
+  tipoVotacao   String?   @map("tipo_votacao")
+  data          DateTime? @db.Timestamptz
+  fonteUrl      String    @map("fonte_url")
+  coletadoEm    DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
 
   sessao     Sessao      @relation(fields: [sessaoId], references: [id])
   proposicao Proposicao? @relation(fields: [proposicaoId], references: [id])
@@ -197,6 +205,7 @@ model Voto {
   id         Int      @id @default(autoincrement())
   votacaoId  Int      @map("votacao_id")
   vereadorId Int      @map("vereador_id")
+  // sim | nao | nao_votou | ausente | ausente_plenario | ausente_votacao
   voto       String
   fonteUrl   String   @map("fonte_url")
   coletadoEm DateTime @default(now()) @map("coletado_em") @db.Timestamptz

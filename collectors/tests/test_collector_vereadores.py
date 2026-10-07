@@ -233,3 +233,10 @@ def test_email_suspeito_e_descartado():
     assert clean_email("a@b.com?bcc=x@y.z") is None
     assert clean_email("sem-arroba") is None
     assert clean_email(None) is None
+
+
+def test_grava_nome_civil_quando_conhecido(db_conn, fixture_text):
+    VereadoresCollector().run(db_conn, _http(fixture_text))
+    assert _q(db_conn, "SELECT nome, nome_parlamentar FROM vereadores WHERE gwlegis_id = 21") == [
+        ("Rogério Aparecido Narciso da Silva", "Rogerinho da Policlínica")
+    ]

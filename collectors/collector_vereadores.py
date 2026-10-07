@@ -21,6 +21,7 @@ from bs4 import BeautifulSoup
 from base import Collector, HttpClient
 from collector_sessoes import normalize_text
 from config import GWLEGIS_BASE
+from nomes_civis import NOMES_CIVIS
 
 log = logging.getLogger("radarpa")
 
@@ -280,7 +281,8 @@ class VereadoresCollector(Collector):
             """,
             (
                 v.gwlegis_id,
-                v.nome_parlamentar,  # o portal não publica o nome civil
+                # O perfil do portal não traz o nome civil; vem da tabela conferida.
+                NOMES_CIVIS.get(v.gwlegis_id, v.nome_parlamentar),
                 v.nome_parlamentar,
                 v.partido,
                 v.foto_url,

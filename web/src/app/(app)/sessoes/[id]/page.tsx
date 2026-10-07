@@ -6,6 +6,8 @@ import { requirePageSession } from "@/lib/auth/session";
 import { formatData, formatDiaSemana, formatHora, tipoCurto } from "@/lib/format";
 import { safeExternalUrl } from "@/lib/safe-url";
 import { getSessao } from "@/lib/sessoes";
+import { getPresencasDaSessao, getVotacoesDaSessao } from "@/lib/votacoes";
+import { VotacaoItem } from "@/components/VotacaoItem";
 
 const GWLEGIS = "https://cmpousoalegre.gwlegis.com.br";
 
@@ -39,6 +41,10 @@ async function SessaoDetalhe({ params }: { params: Promise<{ id: string }> }) {
 
   const dur = duracao(sessao.dataInicio, sessao.dataFim);
   const ataUrl = safeExternalUrl(sessao.ataUrl);
+  const [presencas, votacoes] = await Promise.all([
+    getPresencasDaSessao(sessao.id),
+    getVotacoesDaSessao(sessao.id),
+  ]);
 
   return (
     <article className="mt-2">
@@ -62,6 +68,56 @@ async function SessaoDetalhe({ params }: { params: Promise<{ id: string }> }) {
         <span className="text-muted">Status</span>
         <span className="font-medium">{sessao.status}</span>
       </div>
+
+      {presencas.total > 0 && (
+        <section className="mt-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Presença</h2>
+          <div className="card mt-3 p-4">
+            <p className="text-sm">
+              <b className="text-lg tabular-nums">{presencas.presentes}</b>
+              <span className="text-muted"> de {presencas.total} vereadores presentes</span>
+              {presencas.pendentes > 0 && (
+                <span className="text-muted"> · {presencas.pendentes} com registro pendente</span>
+              )}
+            </p>
+            {presencas.ausentes.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {presencas.ausentes.map((a) => (
+                  <Link
+                    key={a.id}
+                    href={`/vereadores/${a.id}`}
+                    className="rounded-full bg-danger/10 px-2.5 py-1 text-xs text-danger"
+                  >
+                    {a.nomeParlamentar}
+                    {a.situacao === "JUSTIFICADO" ? " (justificado)" : " (ausente)"}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      <section className="mt-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
+          Votações {votacoes.length > 0 && `(${votacoes.length})`}
+        </h2>
+        {votacoes.length === 0 ? (
+          <p className="card mt-3 p-4 text-sm text-muted">
+            {sessao.ano >= 2026
+              ? "Boletim de votação ainda não disponível para esta sessão."
+              : "O portal só publica boletins de votação a partir de 2026."}
+          </p>
+        ) : (
+          <ol className="mt-3 space-y-3">
+            {votacoes.map((v) => (
+              <li key={v.id}>
+                <VotacaoItem votacao={v} />
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
 
       <div className="mt-5 flex flex-wrap gap-2">
         {sessao.gwlegisId && (

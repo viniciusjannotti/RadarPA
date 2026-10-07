@@ -6,6 +6,8 @@ import { Avatar } from "@/components/Avatar";
 import { requirePageSession } from "@/lib/auth/session";
 import { formatData, formatDataCivil } from "@/lib/format";
 import { getVereador } from "@/lib/vereadores";
+import { getResumoVereador, VOTO_LABEL } from "@/lib/votacoes";
+import { VotoPlacar } from "@/components/VotoPlacar";
 
 const GWLEGIS = "https://cmpousoalegre.gwlegis.com.br";
 
@@ -31,6 +33,7 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const v = /^\d{1,9}$/.test(id) ? await getVereador(Number(id)) : null;
   if (!v) notFound();
+  const resumo = await getResumoVereador(v.id);
 
   return (
     <article className="mt-2">
@@ -62,6 +65,50 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
         )}
         <Linha label="Situação">{v.status === "ativo" ? "Em exercício" : v.status}</Linha>
       </dl>
+
+      {resumo.presenca && (
+        <section className="mt-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Presença em sessões
+          </h2>
+          <div className="card mt-3 flex items-center gap-4 p-4">
+            <span className="text-3xl font-bold tabular-nums text-accent-2">
+              {resumo.presenca.percentual}%
+            </span>
+            <span className="text-sm text-muted">
+              {resumo.presenca.presentes} de {resumo.presenca.total} sessões com boletim de presença
+              (desde 2026)
+            </span>
+          </div>
+        </section>
+      )}
+
+      {resumo.votosRecentes.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Votos nominais
+          </h2>
+          <div className="card mt-3 p-4">
+            <VotoPlacar placar={resumo.contagem} />
+          </div>
+          <ul className="mt-3 space-y-2">
+            {resumo.votosRecentes.map((voto) => (
+              <li key={voto.votacaoId}>
+                <Link
+                  href={`/sessoes/${voto.sessaoId}`}
+                  className="card-link flex items-center justify-between gap-3 p-3"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[11px] text-muted">{formatData(voto.data)}</span>
+                    <span className="line-clamp-2 text-sm leading-snug">{voto.descricao}</span>
+                  </span>
+                  <VotoBadge voto={voto.voto} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-6">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Comissões</h2>
@@ -96,6 +143,20 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
       )}
       <p className="mt-6 text-xs text-muted">Fonte: GWLegis · coletado em {formatData(v.coletadoEm)}</p>
     </article>
+  );
+}
+
+function VotoBadge({ voto }: { voto: string }) {
+  const cor =
+    voto === "sim"
+      ? "bg-accent-2-soft text-accent-2"
+      : voto === "nao"
+        ? "bg-danger/15 text-danger"
+        : "bg-surface-strong text-muted";
+  return (
+    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cor}`}>
+      {VOTO_LABEL[voto] ?? voto}
+    </span>
   );
 }
 

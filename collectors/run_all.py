@@ -17,9 +17,11 @@ log = logging.getLogger("radarpa")
 def all_collectors() -> list[Collector]:
     from collector_sessoes import SessoesCollector
     from collector_vereadores import VereadoresCollector
+    from collector_votacoes import VotacoesCollector
 
-    # Vereadores antes de qualquer coletor que referencie vereadores (votos, autoria).
-    return [VereadoresCollector(), SessoesCollector()]
+    # Vereadores antes de qualquer coletor que referencie vereadores (votos, autoria);
+    # votações depois das sessões (precisa do gwlegis_id de cada sessão).
+    return [VereadoresCollector(), SessoesCollector(), VotacoesCollector()]
 
 
 def run_collectors(collectors: list[Collector], conn=None, http: HttpClient | None = None) -> int:
