@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { requirePageSession } from "@/lib/auth/session";
 import { formatData, formatDiaSemana, formatHora, tipoCurto } from "@/lib/format";
 import { safeExternalUrl } from "@/lib/safe-url";
 import { getSessao } from "@/lib/sessoes";
@@ -31,6 +32,7 @@ function duracao(inicio: Date, fim: Date | null): string | null {
 
 async function SessaoDetalhe({ params }: { params: Promise<{ id: string }> }) {
   await connection();
+  await requirePageSession();
   const { id } = await params;
   const sessao = /^\d{1,9}$/.test(id) ? await getSessao(Number(id)) : null;
   if (!sessao) notFound();

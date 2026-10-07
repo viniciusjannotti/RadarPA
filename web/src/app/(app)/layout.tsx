@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { logout } from "@/lib/auth/actions";
 import { BottomNav } from "@/components/BottomNav";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -6,7 +7,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh pb-24">
       <header className="sticky top-0 z-30 border-b border-line bg-[var(--nav-bg)] pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-4">
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold tracking-tight">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
             <span
               aria-hidden
               className="relative grid size-7 place-items-center rounded-full border border-accent-2/60"
@@ -15,6 +16,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </span>
             Radar <span className="text-accent">PA</span>
           </Link>
+          <form action={logout} className="ml-auto">
+            <button
+              type="submit"
+              className="inline-flex min-h-11 items-center rounded-full px-3 text-sm text-muted transition hover:text-fg"
+            >
+              Sair
+            </button>
+          </form>
         </div>
       </header>
       <main className="mx-auto max-w-2xl px-4 py-5">{children}</main>

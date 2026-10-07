@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { requirePageSession } from "@/lib/auth/session";
 import { SessaoCard, SessaoCardSkeleton } from "@/components/SessaoCard";
 import { tipoCurto } from "@/lib/format";
 import { firstParam, intParam } from "@/lib/search-params";
@@ -33,6 +34,7 @@ function hrefCom(params: { tipo?: string; pg?: number }) {
 
 async function SessoesLista({ searchParams }: { searchParams: SearchParams }) {
   await connection();
+  await requirePageSession();
   const params = await searchParams;
   const tipo = firstParam(params, "tipo");
   const page = intParam(params, "pg");
