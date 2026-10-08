@@ -147,6 +147,9 @@ model Proposicao {
   status        String?
   dataProtocolo DateTime? @map("data_protocolo") @db.Date
   link          String?
+  // título + ementa em minúsculas e sem acento, para a Busca. Preenchida pelo coletor
+  // (texto_busca); nasce NULL e a 1ª coleta após a migration preenche todas as linhas.
+  busca         String?
   fonteUrl      String    @map("fonte_url")
   coletadoEm    DateTime  @default(now()) @map("coletado_em") @db.Timestamptz
   atualizadoEm  DateTime  @default(now()) @map("atualizado_em") @db.Timestamptz
@@ -162,6 +165,7 @@ model Proposicao {
   @@index([titulo], map: "idx_proposicoes_titulo")
   @@index([ementa(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_proposicoes_ementa_trgm")
   @@index([titulo(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_proposicoes_titulo_trgm")
+  @@index([busca(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_proposicoes_busca_trgm")
   @@map("proposicoes")
 }
 

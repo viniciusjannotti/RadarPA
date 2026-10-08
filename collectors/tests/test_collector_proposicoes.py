@@ -263,3 +263,41 @@ def test_autoria_casa_titulo_com_grafia_diferente(db_conn, fixture_text):
         "SELECT p.titulo FROM proposicao_autores a JOIN proposicoes p ON p.id = a.proposicao_id WHERE a.vereador_id = %s",
         (vid,),
     ) == [("Emenda Nº 1 ao Projeto de Lei Nº 1717/2026",)]
+
+
+def test_texto_de_busca_sem_acento_e_minusculo():
+    from collector_proposicoes import texto_busca
+
+    assert texto_busca("Projeto de Lei Nº 8412/2026", "DISPÕE SOBRE O ASSÉDIO MORAL") == (
+        "projeto de lei nº 8412/2026 dispoe sobre o assedio moral"
+    )
+    assert texto_busca("Indicação Nº 5/2026", None) == "indicacao nº 5/2026"
+
+
+def test_collect_grava_coluna_busca_mesmo_em_linhas_existentes(db_conn, fixture_text):
+    _seed(db_conn)
+    ProposicoesCollector().run(db_conn, _http(fixture_text, {1: _listing([])}))
+    with db_conn.cursor() as cur:  # simula linha antiga, anterior à coluna
+        cur.execute("UPDATE proposicoes SET busca = NULL")
+    db_conn.commit()
+    ProposicoesCollector().run(db_conn, _http(fixture_text, {1: _listing([])}))
+    assert _q(db_conn, "SELECT busca FROM proposicoes WHERE titulo = 'Projeto de Lei Nº 8412/2026'") == [
+        ("projeto de lei nº 8412/2026 dispoe sobre a prevencao e o combate ao assedio moral nas relacoes de trabalho no ambito da administracao publica direta e indireta do municipio de pouso alegre e da outras providencias.",)
+    ]
+
+
+# Mesmas entradas/saídas de web/src/lib/busca-texto.test.ts (PARIDADE).
+@pytest.mark.parametrize(
+    "entrada,esperado",
+    [
+        ("ASSÉDIO", "assedio"),
+        ("Ação Nº 5", "acao nº 5"),
+        ("CONCESSÃO à ÇÉU", "concessao a ceu"),
+        ("1ª Sessão", "1ª sessao"),
+        ("Lívia Ü", "livia u"),
+    ],
+)
+def test_paridade_da_normalizacao_com_a_web(entrada, esperado):
+    from collector_proposicoes import texto_busca
+
+    assert texto_busca(entrada, None) == esperado

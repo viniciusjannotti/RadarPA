@@ -15,6 +15,7 @@ import csv
 import io
 import logging
 import re
+import unicodedata
 from dataclasses import dataclass
 from datetime import date, datetime
 
@@ -67,6 +68,14 @@ def indice_de_titulos(cur) -> dict[str, int]:
         k = normalizar_titulo(titulo)
         idx[k] = None if k in idx else pid
     return {k: v for k, v in idx.items() if v is not None}
+
+
+def texto_busca(titulo: str, ementa: str | None) -> str:
+    """Minúsculo e sem acento: quem digita "assedio" no celular acha "ASSÉDIO".
+    A web normaliza a consulta do mesmo jeito (lib/busca.ts)."""
+    texto = " ".join(p for p in (titulo, ementa) if p).lower()
+    decomposto = unicodedata.normalize("NFD", texto)
+    return "".join(c for c in decomposto if unicodedata.category(c) != "Mn")
 
 
 def tipo_do_titulo(titulo: str) -> str:
@@ -200,21 +209,23 @@ class ProposicoesCollector(Collector):
                 cur,
                 """
                 INSERT INTO proposicoes
-                    (tipo, numero, ano, titulo, ementa, data_protocolo, link, fonte_url)
+                    (tipo, numero, ano, titulo, ementa, data_protocolo, link, busca, fonte_url)
                 VALUES %s
                 ON CONFLICT (tipo, numero, ano, titulo) DO UPDATE SET
                     ementa = EXCLUDED.ementa,
                     data_protocolo = EXCLUDED.data_protocolo,
                     link = EXCLUDED.link,
+                    busca = EXCLUDED.busca,
                     coletado_em = NOW(),
                     atualizado_em = NOW()
                 -- Só reescreve o que mudou: evita regravar ~60 mil linhas (e os índices
                 -- trigram) a cada execução e mantém atualizado_em significativo.
-                WHERE (proposicoes.ementa, proposicoes.data_protocolo, proposicoes.link)
-                    IS DISTINCT FROM (EXCLUDED.ementa, EXCLUDED.data_protocolo, EXCLUDED.link)
+                WHERE (proposicoes.ementa, proposicoes.data_protocolo, proposicoes.link, proposicoes.busca)
+                    IS DISTINCT FROM (EXCLUDED.ementa, EXCLUDED.data_protocolo, EXCLUDED.link, EXCLUDED.busca)
                 """,
                 [
-                    (r.tipo, r.numero, r.ano, r.titulo, r.ementa, r.data_protocolo, r.link, EXPORT_URL)
+                    (r.tipo, r.numero, r.ano, r.titulo, r.ementa, r.data_protocolo, r.link,
+                     texto_busca(r.titulo, r.ementa), EXPORT_URL)
                     for r in rows[i : i + BATCH]
                 ],
             )
