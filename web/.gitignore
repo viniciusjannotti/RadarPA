@@ -50,3 +50,5 @@ next-env.d.ts
 /.windsurf
 /.claude
 /skills-lock.json
+# gerado no build a partir de scripts/sw.template.js
+/public/sw.js

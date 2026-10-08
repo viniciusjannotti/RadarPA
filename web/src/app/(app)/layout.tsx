@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logout } from "@/lib/auth/actions";
+import { AlternarTema } from "@/components/AlternarTema";
 import { BottomNav } from "@/components/BottomNav";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -16,7 +17,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </span>
             Radar <span className="text-accent">PA</span>
           </Link>
-          <form action={logout} className="ml-auto">
+          <div className="ml-auto" />
+          <AlternarTema />
+          <form action={logout}>
             <button
               type="submit"
               className="inline-flex min-h-11 items-center rounded-full px-3 text-sm text-muted transition hover:text-fg"

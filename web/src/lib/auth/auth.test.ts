@@ -135,6 +135,8 @@ describe("authDecision", () => {
   it("libera o login e rotas públicas", () => {
     expect(authDecision("/login", false)).toBe("allow");
     expect(authDecision("/manifest.webmanifest", false)).toBe("allow");
+    // Página que o service worker mostra sem rede: não pode depender de sessão.
+    expect(authDecision("/offline", false)).toBe("allow");
   });
 
   it("libera tudo com sessão válida", () => {

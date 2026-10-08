@@ -1,7 +1,8 @@
 export const LOGIN_PATH = "/login";
 
-// Caminhos acessíveis sem sessão (o PWA precisa do manifest antes do login).
-const PUBLIC_PATHS = new Set([LOGIN_PATH, "/manifest.webmanifest"]);
+// Caminhos acessíveis sem sessão: o PWA precisa do manifest antes do login, e
+// /offline é o que o service worker mostra quando não há rede (sem dados nela).
+const PUBLIC_PATHS = new Set([LOGIN_PATH, "/manifest.webmanifest", "/offline"]);
 
 export type AuthDecision = "allow" | "redirect" | "unauthorized";
 

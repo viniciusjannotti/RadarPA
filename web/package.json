@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && tsx scripts/gerar-sw.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -15,7 +15,8 @@
     "test": "tsx scripts/with-test-db.ts -- vitest run",
     "test:unit": "vitest run --project unit",
     "test:py": "tsx scripts/with-test-db.ts --cwd ../collectors -- .venv\\Scripts\\python -m pytest -q",
-    "collect": "cd ../collectors && python run_all.py"
+    "collect": "cd ../collectors && python run_all.py",
+    "icones": "tsx scripts/gerar-icones.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
