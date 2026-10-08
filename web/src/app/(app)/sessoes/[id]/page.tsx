@@ -8,6 +8,7 @@ import { safeExternalUrl } from "@/lib/safe-url";
 import { getSessao } from "@/lib/sessoes";
 import { getPresencasDaSessao, getVotacoesDaSessao } from "@/lib/votacoes";
 import { VotacaoItem } from "@/components/VotacaoItem";
+import { NotasDoAlvo } from "@/components/notas/NotasDoAlvo";
 
 const GWLEGIS = "https://cmpousoalegre.gwlegis.com.br";
 
@@ -97,6 +98,8 @@ async function SessaoDetalhe({ params }: { params: Promise<{ id: string }> }) {
           </div>
         </section>
       )}
+
+      <NotasDoAlvo tipoAlvo="sessao" alvoId={sessao.id} />
 
       <section className="mt-6">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">

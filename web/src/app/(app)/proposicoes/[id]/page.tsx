@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { ResultadoBadge } from "@/components/VotoPlacar";
+import { NotasDoAlvo } from "@/components/notas/NotasDoAlvo";
 import { requirePageSession } from "@/lib/auth/session";
 import { formatData, formatDataCivil } from "@/lib/format";
 import { getProposicao } from "@/lib/proposicoes";
@@ -80,6 +81,8 @@ async function Detalhe({ params }: { params: Promise<{ id: string }> }) {
           </ul>
         </section>
       )}
+
+      <NotasDoAlvo tipoAlvo="proposicao" alvoId={p.id} />
 
       <div className="mt-6 flex flex-wrap gap-2">
         {p.gwlegisId && (

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { Avatar } from "@/components/Avatar";
+import { NotasDoAlvo } from "@/components/notas/NotasDoAlvo";
 import { requirePageSession } from "@/lib/auth/session";
 import { formatData, formatDataCivil } from "@/lib/format";
 import { getVereador } from "@/lib/vereadores";
@@ -149,6 +150,8 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
           </ul>
         </section>
       )}
+
+      <NotasDoAlvo tipoAlvo="vereador" alvoId={v.id} />
 
       <section className="mt-6">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Comissões</h2>

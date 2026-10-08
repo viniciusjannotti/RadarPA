@@ -15,6 +15,8 @@
   --accent-2: #10b981;
   --accent-2-soft: rgba(16, 185, 129, 0.16);
   --danger: #f43f5e;
+  --note: #f59e0b;
+  --note-soft: rgba(245, 158, 11, 0.14);
   --nav-bg: rgba(7, 13, 26, 0.82);
   color-scheme: dark;
 }
@@ -33,6 +35,8 @@
   --accent-2: #059669;
   --accent-2-soft: rgba(5, 150, 105, 0.1);
   --danger: #e11d48;
+  --note: #b45309;
+  --note-soft: rgba(217, 119, 6, 0.12);
   --nav-bg: rgba(243, 246, 251, 0.85);
   color-scheme: light;
 }
@@ -49,6 +53,8 @@
   --color-accent-2: var(--accent-2);
   --color-accent-2-soft: var(--accent-2-soft);
   --color-danger: var(--danger);
+  --color-note: var(--note);
+  --color-note-soft: var(--note-soft);
   --font-sans: var(--font-inter);
 }
 
