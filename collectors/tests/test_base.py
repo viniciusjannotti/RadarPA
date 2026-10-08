@@ -169,3 +169,35 @@ def test_run_registra_erro_e_relanca(db_conn):
     [(nome, status, registros, erro, terminou)] = _logs(db_conn)
     assert (nome, status, registros, terminou) == ("boom_collector", "erro", 0, True)
     assert "falhou feio" in erro
+
+
+def test_execucao_anterior_morta_vira_interrompida(db_conn):
+    with db_conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO coleta_logs (coletor, inicio, status) VALUES "
+            "('ok_collector', NOW() - INTERVAL '1 day', 'executando'), "
+            "('outro_coletor', NOW() - INTERVAL '1 day', 'executando')"
+        )
+    db_conn.commit()
+    OkCollector().run(db_conn, http=None)
+    with db_conn.cursor() as cur:
+        cur.execute("SELECT coletor, status, fim IS NOT NULL FROM coleta_logs ORDER BY id")
+        rows = cur.fetchall()
+    assert rows == [
+        ("ok_collector", "interrompido", True),
+        ("outro_coletor", "executando", False),  # só mexe nas execuções do próprio coletor
+        ("ok_collector", "sucesso", True),
+    ]
+
+
+def test_execucao_recente_em_andamento_nao_e_marcada(db_conn):
+    with db_conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO coleta_logs (coletor, inicio, status) VALUES "
+            "('ok_collector', NOW() - INTERVAL '10 minutes', 'executando')"
+        )
+    db_conn.commit()
+    OkCollector().run(db_conn, http=None)
+    with db_conn.cursor() as cur:
+        cur.execute("SELECT status FROM coleta_logs ORDER BY id")
+        assert [s for (s,) in cur.fetchall()] == ["executando", "sucesso"]

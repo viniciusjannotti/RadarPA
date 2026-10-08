@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Callable
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -130,6 +130,16 @@ class Collector(ABC):
     def run(self, conn, http: HttpClient | None) -> int:
         inicio = datetime.now(timezone.utc)
         with conn.cursor() as cur:
+            # Execução anterior deste coletor que nunca terminou (processo morto, deploy no
+            # meio) ficaria "executando" para sempre. Só conta como morta depois de 6 h:
+            # a coleta mais longa (proposições completa) leva ~25 min, então uma execução
+            # simultânea legítima nunca é marcada.
+            cur.execute(
+                "UPDATE coleta_logs SET status = 'interrompido', fim = %s, "
+                "erro = 'execução não terminou (processo encerrado)' "
+                "WHERE coletor = %s AND status = 'executando' AND inicio < %s",
+                (inicio, self.name, inicio - timedelta(hours=6)),
+            )
             cur.execute(
                 "INSERT INTO coleta_logs (coletor, inicio, status) "
                 "VALUES (%s, %s, 'executando') RETURNING id",
