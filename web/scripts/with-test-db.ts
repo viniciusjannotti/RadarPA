@@ -19,7 +19,14 @@ function parseArgs(argv: string[]) {
   if (!cwd.startsWith(repoRoot)) {
     throw new Error(`--cwd fora do repositório: ${cwd}`);
   }
-  return { cwd, cmd };
+  return { cwd, cmd: cmd.map((c) => (c === "python-venv" ? pythonDoVenv(cwd) : c)) };
+}
+
+/** "python-venv" no comando → Python do venv do diretório (Windows ou Linux/mac). */
+function pythonDoVenv(cwd: string): string {
+  const win = path.join(cwd, ".venv", "Scripts", "python.exe");
+  const exe = fs.existsSync(win) ? win : path.join(cwd, ".venv", "bin", "python");
+  return `"${exe}"`; // o comando passa pelo shell: aspas protegem caminhos com espaço
 }
 
 function testPort(): number {
