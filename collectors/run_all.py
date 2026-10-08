@@ -17,6 +17,7 @@ log = logging.getLogger("radarpa")
 def all_collectors() -> list[Collector]:
     from datetime import date
 
+    from collector_noticias import NoticiasCollector
     from collector_proposicoes import ProposicoesCollector
     from collector_sessoes import SessoesCollector
     from collector_vereadores import VereadoresCollector
@@ -31,6 +32,7 @@ def all_collectors() -> list[Collector]:
         SessoesCollector(),
         VotacoesCollector(),
         ProposicoesCollector(autoria_completa=date.today().weekday() == 6),
+        NoticiasCollector(),
     ]
 
 

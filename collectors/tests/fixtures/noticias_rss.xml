@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <atom:link rel="self" type="application/rss+xml" href="https://www.pousoalegre.mg.leg.br/rss.xml"/>
+    <title>Câmara Municipal de Pouso Alegre</title>
+    <link>https://www.pousoalegre.mg.leg.br</link>
+    <description>Pouso Alegre - MG</description>
+
+    <language>pt-br</language>
+    <copyright></copyright>
+    <generator>Plone</generator>
+    <item>
+      <title>Prorrogado o prazo para escolas inscreverem alunos para participar de livro digital da Câmara</title>
+      <description></description>
+      
+      <pubDate>Thu, 08 Oct 2026 16:33:24 -0300</pubDate>
+      <guid>https://www.pousoalegre.mg.leg.br/comunicacao/noticias/prorrogado-o-prazo-para-escolas-inscreverem-alunos-para-participar-de-livro-digital-da-camara</guid>
+    </item>
+    <item>
+      <title>Quatro requerimentos são apreciados na Câmara</title>
+      <description></description>
+      
+      <pubDate>Tue, 06 Oct 2026 17:34:05 -0300</pubDate>
+      <guid>https://www.pousoalegre.mg.leg.br/comunicacao/noticias/quatro-requerimentos-sao-apreciados-na-camara</guid>
+    </item>
+    <item>
+      <title>Câmara aprova inclusão de novas ações no Plano Plurianual de Pouso Alegre</title>
+      <description></description>
+      
+      <pubDate>Tue, 06 Oct 2026 17:24:59 -0300</pubDate>
+      <guid>https://www.pousoalegre.mg.leg.br/comunicacao/noticias/camara-aprova-inclusao-de-novas-acoes-no-plano-plurianual-de-pouso-alegre</guid>
+    </item>
+    <item>
+      <title>Câmara aprova criação de polo de estudos integrados para estudantes da rede municipal</title>
+      <description></description>
+      
+      <pubDate>Tue, 06 Oct 2026 17:04:23 -0300</pubDate>
+      <guid>https://www.pousoalegre.mg.leg.br/comunicacao/noticias/camara-aprova-criacao-de-polo-de-estudos-integrados-para-estudantes-da-rede-municipal</guid>
+    </item>
+    <item>
+      <title>Programa de envelhecimento ativo é aprovado em 1ª votação na Câmara</title>
+      <description></description>
+      
+      <pubDate>Tue, 06 Oct 2026 17:03:08 -0300</pubDate>
+      <guid>https://www.pousoalegre.mg.leg.br/comunicacao/noticias/programa-de-envelhecimento-ativo-e-aprovado-em-1a-votacao-na-camara</guid>
+    </item>
+  </channel>
+</rss>

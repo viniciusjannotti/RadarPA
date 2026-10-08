@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { portalUrl, safeExternalUrl } from "@/lib/safe-url";
+import { portalUrl, safeExternalUrl, siteUrl } from "@/lib/safe-url";
+
+describe("siteUrl", () => {
+  it("aceita só https do site institucional", () => {
+    expect(siteUrl("https://www.pousoalegre.mg.leg.br/comunicacao/x")).toBe(
+      "https://www.pousoalegre.mg.leg.br/comunicacao/x",
+    );
+    expect(siteUrl("https://cmpousoalegre.gwlegis.com.br/x")).toBeNull();
+    expect(siteUrl("javascript:alert(1)")).toBeNull();
+  });
+});
 
 describe("portalUrl", () => {
   it("aceita só https do portal da Câmara", () => {

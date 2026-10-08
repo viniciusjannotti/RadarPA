@@ -6,6 +6,14 @@ export function portalUrl(raw: string | null | undefined): string | null {
   return safe && new URL(safe).hostname === PORTAL_HOST ? safe : null;
 }
 
+export const SITE_HOST = "www.pousoalegre.mg.leg.br";
+
+/** https do site institucional da Câmara (notícias do RSS). */
+export function siteUrl(raw: string | null | undefined): string | null {
+  const safe = safeExternalUrl(raw);
+  return safe && new URL(safe).hostname === SITE_HOST ? safe : null;
+}
+
 /** URLs vindas das fontes coletadas só viram link se forem https absolutas. */
 export function safeExternalUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
