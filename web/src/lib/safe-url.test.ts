@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { safeExternalUrl } from "@/lib/safe-url";
+import { portalUrl, safeExternalUrl } from "@/lib/safe-url";
+
+describe("portalUrl", () => {
+  it("aceita só https do portal da Câmara", () => {
+    expect(portalUrl("https://cmpousoalegre.gwlegis.com.br/arquivo/x.pdf")).toBe(
+      "https://cmpousoalegre.gwlegis.com.br/arquivo/x.pdf",
+    );
+    expect(portalUrl("https://evil.com/x.pdf")).toBeNull();
+    expect(portalUrl("https://cmpousoalegre.gwlegis.com.br.evil.com/x")).toBeNull();
+    expect(portalUrl("http://cmpousoalegre.gwlegis.com.br/x")).toBeNull();
+    expect(portalUrl(null)).toBeNull();
+  });
+});
 
 describe("safeExternalUrl", () => {
   it("aceita https", () => {

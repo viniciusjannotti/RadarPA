@@ -14,7 +14,15 @@ export function VotacaoItem({ votacao }: { votacao: VotacaoDetalhe }) {
               {votacao.tipoAprovacao ? ` · ${votacao.tipoAprovacao}` : ""}
             </p>
           )}
-          <h3 className="mt-0.5 font-semibold leading-snug">{votacao.descricao}</h3>
+          <h3 className="mt-0.5 font-semibold leading-snug">
+            {votacao.proposicaoId ? (
+              <Link href={`/proposicoes/${votacao.proposicaoId}`} className="hover:text-accent">
+                {votacao.descricao}
+              </Link>
+            ) : (
+              votacao.descricao
+            )}
+          </h3>
           {votacao.autoria && <p className="mt-0.5 text-sm text-muted">Autoria: {votacao.autoria}</p>}
         </div>
         <ResultadoBadge resultado={votacao.resultado} />

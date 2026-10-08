@@ -158,6 +158,8 @@ model Proposicao {
   // para pareceres distintos (ex.: "Parecer Nº 1 ao PL 1716" e "ao PL 1717").
   @@unique([tipo, numero, ano, titulo])
   @@index([tipo, ano], map: "idx_proposicoes_tipo_ano")
+  // Igualdade por título (casamento com a listagem de autoria e com as votações).
+  @@index([titulo], map: "idx_proposicoes_titulo")
   @@index([ementa(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_proposicoes_ementa_trgm")
   @@index([titulo(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_proposicoes_titulo_trgm")
   @@map("proposicoes")

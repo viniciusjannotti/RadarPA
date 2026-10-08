@@ -7,6 +7,7 @@ import { requirePageSession } from "@/lib/auth/session";
 import { formatData, formatDataCivil } from "@/lib/format";
 import { getVereador } from "@/lib/vereadores";
 import { getResumoVereador, VOTO_LABEL } from "@/lib/votacoes";
+import { getProducaoVereador } from "@/lib/proposicoes";
 import { VotoPlacar } from "@/components/VotoPlacar";
 
 const GWLEGIS = "https://cmpousoalegre.gwlegis.com.br";
@@ -33,7 +34,10 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const v = /^\d{1,9}$/.test(id) ? await getVereador(Number(id)) : null;
   if (!v) notFound();
-  const resumo = await getResumoVereador(v.id);
+  const [resumo, producao] = await Promise.all([
+    getResumoVereador(v.id),
+    getProducaoVereador(v.id),
+  ]);
 
   return (
     <article className="mt-2">
@@ -80,6 +84,42 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
               (desde 2026)
             </span>
           </div>
+        </section>
+      )}
+
+      {producao.total > 0 && (
+        <section className="mt-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Produção legislativa (legislatura atual)
+          </h2>
+          <div className="card mt-3 p-4">
+            <p className="text-sm">
+              <b className="text-lg tabular-nums">{producao.total.toLocaleString("pt-BR")}</b>
+              <span className="text-muted"> proposições de autoria</span>
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-1.5">
+              {producao.porTipo.map((t) => (
+                <li key={t.tipo} className="rounded-full bg-surface-strong px-2.5 py-1 text-xs">
+                  {t.tipo} <b className="tabular-nums">{t.total}</b>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <ul className="mt-3 space-y-2">
+            {producao.recentes.map((p) => (
+              <li key={p.id}>
+                <Link href={`/proposicoes/${p.id}`} className="card-link block p-3">
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-medium">{p.titulo}</span>
+                    {p.status && <span className="shrink-0 text-[11px] text-muted">{p.status}</span>}
+                  </span>
+                  {p.ementa && (
+                    <span className="mt-1 line-clamp-2 block text-xs text-muted">{p.ementa}</span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

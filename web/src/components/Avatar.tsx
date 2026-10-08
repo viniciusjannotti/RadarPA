@@ -1,12 +1,4 @@
-import { safeExternalUrl } from "@/lib/safe-url";
-
-// Mesmo host liberado em img-src no CSP (next.config.ts).
-const FOTO_HOST = "cmpousoalegre.gwlegis.com.br";
-
-function fotoSegura(url: string | null): string | null {
-  const safe = safeExternalUrl(url);
-  return safe && new URL(safe).hostname === FOTO_HOST ? safe : null;
-}
+import { portalUrl } from "@/lib/safe-url";
 
 function iniciais(nome: string): string {
   const partes = nome.split(/\s+/).filter(Boolean);
@@ -22,7 +14,7 @@ export function Avatar({
   fotoUrl: string | null;
   size?: number;
 }) {
-  const src = fotoSegura(fotoUrl);
+  const src = portalUrl(fotoUrl); // mesmo host liberado em img-src no CSP
   const style = { width: size, height: size };
   if (!src) {
     return (

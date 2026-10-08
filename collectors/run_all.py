@@ -15,13 +15,23 @@ log = logging.getLogger("radarpa")
 
 
 def all_collectors() -> list[Collector]:
+    from datetime import date
+
+    from collector_proposicoes import ProposicoesCollector
     from collector_sessoes import SessoesCollector
     from collector_vereadores import VereadoresCollector
     from collector_votacoes import VotacoesCollector
 
     # Vereadores antes de qualquer coletor que referencie vereadores (votos, autoria);
-    # votações depois das sessões (precisa do gwlegis_id de cada sessão).
-    return [VereadoresCollector(), SessoesCollector(), VotacoesCollector()]
+    # votações depois das sessões (precisa do gwlegis_id de cada sessão); proposições
+    # por último (liga as votações já gravadas às proposições).
+    # Aos domingos a autoria faz varredura completa (retoma backfills interrompidos).
+    return [
+        VereadoresCollector(),
+        SessoesCollector(),
+        VotacoesCollector(),
+        ProposicoesCollector(autoria_completa=date.today().weekday() == 6),
+    ]
 
 
 def run_collectors(collectors: list[Collector], conn=None, http: HttpClient | None = None) -> int:

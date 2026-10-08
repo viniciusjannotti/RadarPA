@@ -39,6 +39,7 @@ export async function getVotacoesDaSessao(sessaoId: number) {
     select: {
       id: true,
       ordem: true,
+      proposicaoId: true,
       descricao: true,
       legenda: true,
       autoria: true,
