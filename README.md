@@ -75,13 +75,16 @@ O Postgres de teste sobe no fuso `America/Sao_Paulo` de propósito, para pegar b
 data/hora que um servidor em UTC esconderia. Os testes dos coletores usam fixtures
 reais recortadas (`collectors/tests/fixtures/`) e não acessam a internet.
 
-## Deploy (gratuito): Vercel + Neon + GitHub Actions
+## Deploy (gratuito): Vercel + Neon + coleta no PC de casa
 
 | Peça | Onde | Plano |
 |---|---|---|
 | App (`web/`) | Vercel, região `gru1` (São Paulo), fixada em `web/vercel.json` | Hobby |
 | Postgres | Neon, região **AWS São Paulo** (`aws-sa-east-1`) | Free (0,5 GB; o banco tem ~160 MB) |
-| Coletores | GitHub Actions, `.github/workflows/coletores.yml`, todo dia às 09:00 UTC (06:00 em Pouso Alegre) | grátis |
+| Coletores | Agendador de Tarefas do Windows, no PC de casa, todo dia às 06:00 | grátis |
+
+Os coletores **não** rodam na nuvem: o portal GWLegis fica atrás do Cloudflare e responde
+403 a acessos vindos de datacenters (GitHub Actions, Vercel). Do PC de casa funciona.
 
 **Passo a passo (uma vez):**
 
@@ -102,18 +105,28 @@ reais recortadas (`collectors/tests/fixtures/`) e não acessam a internet.
 
 5. **Redeploy** na Vercel. Em produção o build roda `prisma migrate deploy` antes do
    `next build` (falhou → o deploy não sobe). Previews não migram o banco.
-6. **GitHub → Settings → Secrets and variables → Actions → New secret:**
-   `DATABASE_URL` = a string **direta** do Neon (o valor de `DATABASE_URL_UNPOOLED`;
-   o host não tem `-pooler`).
-7. **Primeira carga:** GitHub → Actions → *Coletores* → **Run workflow**. Leva ~30 min
-   (backfill dos ids das sessões e da autoria); as execuções diárias seguintes, poucos
-   minutos. Duas coletas nunca rodam ao mesmo tempo.
+6. **Coleta no PC (Windows):** crie `collectors/.env.producao` (fica fora do git) com
+   `DATABASE_URL=` + a string **direta** do Neon (o valor de `DATABASE_URL_UNPOOLED`; o
+   host não tem `-pooler`). Depois registre a tarefa (PowerShell):
+
+   ```powershell
+   $acao = New-ScheduledTaskAction -Execute "powershell.exe" -Argument '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "D:\Programas\RadarPA\collectors\coletar-producao.ps1"' -WorkingDirectory "D:\Programas\RadarPA\collectors"
+   $gatilho = New-ScheduledTaskTrigger -Daily -At 6:00
+   $config = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 2) -MultipleInstances IgnoreNew -RunOnlyIfNetworkAvailable
+   Register-ScheduledTask -TaskName "RadarPA - Coletores" -Action $acao -Trigger $gatilho -Settings $config
+   ```
+
+   `-StartWhenAvailable`: se o PC estiver desligado às 06:00, a coleta roda assim que
+   ele for ligado. Logs em `collectors/logs/` (os 60 mais recentes).
+7. **Primeira carga:** `Start-ScheduledTask -TaskName "RadarPA - Coletores"`. Leva
+   ~30 min (backfill dos ids das sessões e da autoria); as execuções diárias, poucos
+   minutos.
 
 No celular: abra a URL `*.vercel.app`, entre e use "Adicionar à tela inicial" para
 instalar o PWA.
 
 Trocar `ADMIN_PASSWORD` derruba todas as sessões abertas. Se uma coleta falhar, o
-GitHub manda e-mail e o Dashboard mostra o aviso.
+Dashboard mostra o aviso (detalhes no log em `collectors/logs/`).
 
 **Notas de operação:**
 - O rate limit do login fica no banco (`login_tentativas`), porque na Vercel cada
