@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Em dev reaproveita o .env do app web; no Railway as variáveis vêm do ambiente.
+# Em dev reaproveita o .env do app web; no GitHub Actions as variáveis vêm do ambiente.
 load_dotenv(Path(__file__).resolve().parent.parent / "web" / ".env")
 
 USER_AGENT = "RadarPA/1.0 (+uso-pessoal)"

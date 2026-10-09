@@ -75,39 +75,54 @@ O Postgres de teste sobe no fuso `America/Sao_Paulo` de propósito, para pegar b
 data/hora que um servidor em UTC esconderia. Os testes dos coletores usam fixtures
 reais recortadas (`collectors/tests/fixtures/`) e não acessam a internet.
 
-## Deploy no Railway
+## Deploy (gratuito): Vercel + Neon + GitHub Actions
 
-Um projeto com três itens:
-
-1. **PostgreSQL** (plugin do Railway).
-2. **Serviço `web`** — Root Directory `web`; usa `web/railway.toml`
-   (build, `prisma migrate deploy` antes de cada deploy, healthcheck em `/login`).
-3. **Serviço `coletores`** — Root Directory `collectors`; usa `collectors/railway.toml`
-   (cron diário às 09:00 UTC = 06:00 em Pouso Alegre).
-
-Variáveis de ambiente:
-
-| Variável | Serviço | Valor |
+| Peça | Onde | Plano |
 |---|---|---|
-| `DATABASE_URL` | web, coletores | referência ao Postgres: `${{Postgres.DATABASE_URL}}` |
-| `ADMIN_PASSWORD` | web | senha de acesso, 12+ caracteres |
-| `JWT_SECRET` | web | 32+ caracteres aleatórios: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
+| App (`web/`) | Vercel, região `gru1` (São Paulo), fixada em `web/vercel.json` | Hobby |
+| Postgres | Neon, região **AWS São Paulo** (`aws-sa-east-1`) | Free (0,5 GB; o banco tem ~160 MB) |
+| Coletores | GitHub Actions, `.github/workflows/coletores.yml`, todo dia às 09:00 UTC (06:00 em Pouso Alegre) | grátis |
 
-**Primeira carga de dados:** o cron só roda às 09:00 UTC. Para popular o banco logo
-após o primeiro deploy, altere temporariamente o `cronSchedule` do serviço de
-coletores (no painel ou no `collectors/railway.toml`) para alguns minutos à frente e
-volte para `0 9 * * *` depois. A primeira execução leva cerca de 30 minutos
-(backfill dos ids das sessões e da autoria); as seguintes, poucos minutos. O
-Railway não inicia uma execução enquanto a anterior ainda está rodando.
+**Passo a passo (uma vez):**
 
-Trocar `ADMIN_PASSWORD` derruba todas as sessões abertas.
+1. **GitHub:** crie um repositório (pode ser privado) e envie este código.
+2. **Vercel → Add New → Project:** importe o repositório e defina **Root Directory = `web`**.
+   O resto (framework Next.js, comando de build, região) já vem de `web/vercel.json`.
+3. **Vercel → Storage → Create Database → Neon:** escolha a região **São Paulo** e
+   conecte ao projeto. A integração cria `DATABASE_URL` (pooler) e
+   `DATABASE_URL_UNPOOLED` (direta). O app usa a **direta** (`web/src/lib/database-url.ts`):
+   o pooler do Neon roda em modo transação e descarta parâmetros de sessão (o
+   `TimeZone=UTC` do `lib/db.ts`), além de não servir para migrations.
+4. **Vercel → Settings → Environment Variables** (ambiente Production):
 
-**Conferir após o primeiro deploy:**
-- O rate limit do login usa o IP de `X-Real-IP` ou do último salto de `X-Forwarded-For`
-  (o que o proxy do Railway adiciona). Confirme nos logs que IPs diferentes aparecem
-  como diferentes; se todos chegarem iguais, ajuste `web/src/lib/auth/client-ip.ts`.
+   | Variável | Valor |
+   |---|---|
+   | `ADMIN_PASSWORD` | senha de acesso, 12+ caracteres |
+   | `JWT_SECRET` | 32+ caracteres aleatórios: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
+
+5. **Redeploy** na Vercel. Em produção o build roda `prisma migrate deploy` antes do
+   `next build` (falhou → o deploy não sobe). Previews não migram o banco.
+6. **GitHub → Settings → Secrets and variables → Actions → New secret:**
+   `DATABASE_URL` = a string **direta** do Neon (o valor de `DATABASE_URL_UNPOOLED`;
+   o host não tem `-pooler`).
+7. **Primeira carga:** GitHub → Actions → *Coletores* → **Run workflow**. Leva ~30 min
+   (backfill dos ids das sessões e da autoria); as execuções diárias seguintes, poucos
+   minutos. Duas coletas nunca rodam ao mesmo tempo.
+
+No celular: abra a URL `*.vercel.app`, entre e use "Adicionar à tela inicial" para
+instalar o PWA.
+
+Trocar `ADMIN_PASSWORD` derruba todas as sessões abertas. Se uma coleta falhar, o
+GitHub manda e-mail e o Dashboard mostra o aviso.
+
+**Notas de operação:**
+- O rate limit do login fica no banco (`login_tentativas`), porque na Vercel cada
+  instância teria o próprio contador. O IP vem de `X-Real-IP`, que a Vercel preenche
+  (e ela sobrescreve o `X-Forwarded-For` enviado pelo cliente).
+- O Neon free suspende o banco após 5 min sem uso; o primeiro acesso depois disso
+  demora ~1 s a mais.
 - Não configure `serverActions.allowedOrigins`: o padrão (Origin precisa bater com o
-  Host) é o mais restrito e funciona atrás do proxy do Railway.
+  Host) é o mais restrito e funciona na Vercel.
 
 ## Segurança e privacidade
 

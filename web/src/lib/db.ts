@@ -1,12 +1,13 @@
 import "server-only";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
+import { databaseUrl } from "@/lib/database-url";
 
 // Uma instância por processo; em dev o HMR recarrega módulos, então guardamos no globalThis.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createClient() {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = databaseUrl();
   if (!connectionString) {
     throw new Error("DATABASE_URL não definida");
   }

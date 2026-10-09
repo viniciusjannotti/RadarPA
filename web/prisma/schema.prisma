@@ -271,3 +271,13 @@ model Fonte {
 
   @@map("fontes")
 }
+
+/// Falhas de login por IP (rate limit). Fica no banco porque, em serverless,
+/// cada instância teria o próprio contador em memória.
+model LoginTentativa {
+  chave    String   @id
+  contagem Int
+  inicio   DateTime @db.Timestamptz
+
+  @@map("login_tentativas")
+}

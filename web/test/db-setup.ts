@@ -1,7 +1,9 @@
 import { afterAll, beforeEach } from "vitest";
+import { databaseUrl } from "@/lib/database-url";
 import { db } from "@/lib/db";
 
-const url = new URL(process.env.DATABASE_URL ?? "postgresql://invalido");
+// Confere a URL que o app vai usar de fato (inclui DATABASE_URL_UNPOOLED, se houver).
+const url = new URL(databaseUrl() ?? "postgresql://invalido");
 if (url.pathname !== "/radarpa_test" || !["localhost", "127.0.0.1"].includes(url.hostname)) {
   throw new Error("Testes de banco só rodam contra o banco descartável local. Use `npm test`.");
 }

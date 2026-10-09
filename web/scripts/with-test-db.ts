@@ -56,7 +56,7 @@ async function main() {
 
   let pg: Awaited<ReturnType<typeof startPg>>;
   try {
-    // Fuso não-UTC de propósito: pega bugs de conversão de timestamptz que o Railway (UTC) esconderia.
+    // Fuso não-UTC de propósito: pega bugs de conversão de timestamptz que a Vercel (UTC) esconderia.
     pg = await startPg({
       dataDir,
       port,
@@ -84,7 +84,10 @@ async function main() {
   let status = 1;
   try {
     await pg.createDatabase("radarpa_test");
-    const env = { ...process.env, DATABASE_URL: pg.url("radarpa_test") };
+    // Sem DATABASE_URL_UNPOOLED: ela teria prioridade (lib/database-url) e apontaria
+    // para outro banco, possivelmente o de produção.
+    const env: NodeJS.ProcessEnv = { ...process.env, DATABASE_URL: pg.url("radarpa_test") };
+    delete env.DATABASE_URL_UNPOOLED;
 
     const migrate = spawnSync("npx prisma migrate deploy", {
       cwd: WEB_DIR,

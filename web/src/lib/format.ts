@@ -1,4 +1,4 @@
-// Datas sempre exibidas no fuso da Câmara, não no do servidor (Railway roda em UTC).
+// Datas sempre exibidas no fuso da Câmara, não no do servidor (a Vercel roda em UTC).
 const TZ = "America/Sao_Paulo";
 
 const dataFmt = new Intl.DateTimeFormat("pt-BR", {

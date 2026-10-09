@@ -4,7 +4,6 @@ import { clientIpFrom } from "@/lib/auth/client-ip";
 import { readAuthConfig } from "@/lib/auth/config";
 import { authDecision, safeNextPath } from "@/lib/auth/decision";
 import { passwordMatches } from "@/lib/auth/password";
-import { createRateLimiter } from "@/lib/auth/rate-limit";
 import {
   SESSION_TTL_SECONDS,
   sessionVersion,
@@ -79,38 +78,6 @@ describe("passwordMatches", () => {
     expect(passwordMatches("senha-fraca-1", PASSWORD)).toBe(false);
     expect(passwordMatches("s", PASSWORD)).toBe(false);
     expect(passwordMatches("", PASSWORD)).toBe(false);
-  });
-});
-
-describe("rate limiter", () => {
-  it("bloqueia após o máximo de falhas na janela e libera depois", () => {
-    let now = 0;
-    const rl = createRateLimiter({ max: 3, windowMs: 1000, now: () => now });
-    expect(rl.check("ip").allowed).toBe(true);
-    rl.fail("ip");
-    rl.fail("ip");
-    rl.fail("ip");
-    const blocked = rl.check("ip");
-    expect(blocked.allowed).toBe(false);
-    expect(blocked.retryAfterMs).toBe(1000);
-    expect(rl.check("outro-ip").allowed).toBe(true);
-
-    now = 1001;
-    expect(rl.check("ip").allowed).toBe(true);
-  });
-
-  it("zera o contador após sucesso", () => {
-    const rl = createRateLimiter({ max: 2, windowMs: 1000, now: () => 0 });
-    rl.fail("ip");
-    rl.reset("ip");
-    rl.fail("ip");
-    expect(rl.check("ip").allowed).toBe(true);
-  });
-
-  it("não cresce sem limite de chaves", () => {
-    const rl = createRateLimiter({ max: 1, windowMs: 1000, now: () => 0, maxKeys: 10 });
-    for (let i = 0; i < 100; i++) rl.fail(`ip-${i}`);
-    expect(rl.size()).toBeLessThanOrEqual(10);
   });
 });
 

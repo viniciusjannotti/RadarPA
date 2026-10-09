@@ -17,9 +17,9 @@ describe("service worker", () => {
   });
 
   it("versão usa o commit quando disponível e só tem caracteres seguros", () => {
-    expect(versaoDoBuild({ RAILWAY_GIT_COMMIT_SHA: "0d294e7abcdef" }, () => 1)).toBe("radarpa-0d294e7abcde");
+    expect(versaoDoBuild({ VERCEL_GIT_COMMIT_SHA: "0d294e7abcdef" }, () => 1)).toBe("radarpa-0d294e7abcde");
     expect(versaoDoBuild({}, () => 1791495096955)).toBe("radarpa-1791495096955");
-    expect(versaoDoBuild({ RAILWAY_GIT_COMMIT_SHA: "x\";alert(1)//" }, () => 7)).toBe("radarpa-7");
+    expect(versaoDoBuild({ VERCEL_GIT_COMMIT_SHA: "x\";alert(1)//" }, () => 7)).toBe("radarpa-7");
   });
 
   it("só guarda respostas 200 e não deixa falha de cache derrubar a resposta", () => {

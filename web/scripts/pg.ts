@@ -1,5 +1,5 @@
 // Postgres embutido (pacote embedded-postgres) para desenvolvimento e testes,
-// já que a máquina de dev não tem Postgres/Docker. Em produção usa-se o Railway.
+// já que a máquina de dev não tem Postgres/Docker. Em produção usa-se o Neon.
 import EmbeddedPostgres from "embedded-postgres";
 
 export const PG_USER = "radarpa";
@@ -62,7 +62,14 @@ export async function startPg(opts: {
       }
     },
     stop: async () => {
-      await pg.stop();
+      try {
+        await pg.stop();
+      } catch (err) {
+        // Com persistent=false o stop() apaga a pasta de dados depois que o postgres sai;
+        // no Windows ela pode seguir travada por instantes (EBUSY). O servidor já parou.
+        if ((err as NodeJS.ErrnoException).code !== "EBUSY") throw err;
+        console.warn(`Aviso: pasta de dados ainda em uso, não removida (${String(err)})`);
+      }
       // pg.stop() resolve antes do postmaster sair; espera a porta liberar
       // para que uma execução seguinte não colida com ela.
       await waitPortFree(opts.port);

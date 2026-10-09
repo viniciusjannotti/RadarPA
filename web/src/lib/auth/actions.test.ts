@@ -24,6 +24,21 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
+// Contador em memória no lugar do banco (o limitador real tem teste próprio em *.db-test).
+const falhas = new Map<string, number>();
+let limiterQuebrado = false;
+vi.mock("@/lib/auth/login-limiter", () => ({
+  loginLimiter: {
+    check: async (ip: string) => {
+      if (limiterQuebrado) throw new Error("banco fora");
+      const allowed = (falhas.get(ip) ?? 0) < 5;
+      return { allowed, retryAfterMs: allowed ? 0 : 15 * 60 * 1000 };
+    },
+    fail: async (ip: string) => void falhas.set(ip, (falhas.get(ip) ?? 0) + 1),
+    reset: async (ip: string) => void falhas.delete(ip),
+  },
+}));
+
 const { login, logout } = await import("@/lib/auth/actions");
 const { SESSION_COOKIE } = await import("@/lib/auth/token");
 
@@ -41,6 +56,8 @@ describe("login (Server Action)", () => {
     vi.stubEnv("ADMIN_PASSWORD", "senha-forte-12");
     vi.spyOn(console, "error").mockImplementation(() => {});
     jar.clear();
+    falhas.clear();
+    limiterQuebrado = false;
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -80,6 +97,14 @@ describe("login (Server Action)", () => {
     // Outro IP (último salto diferente) não é afetado: sem lockout global do dono.
     requestHeaders = new Headers({ "x-forwarded-for": "6.6.6.6, 10.0.0.4" });
     await expect(attempt("senha-forte-12")).rejects.toBeInstanceOf(RedirectError);
+  });
+
+  it("com o rate limit indisponível, recusa o login (fail closed)", async () => {
+    requestHeaders = new Headers({ "x-real-ip": "10.0.0.6" });
+    limiterQuebrado = true;
+    const r = await attempt("senha-forte-12");
+    expect(r?.error).toMatch(/Não foi possível entrar/);
+    expect(jar.has(SESSION_COOKIE)).toBe(false);
   });
 
   it("configuração ausente não lança e não revela o motivo", async () => {

@@ -9,8 +9,8 @@ export function montarServiceWorker(template: string, versao: string): string {
   return template.replaceAll(MARCADOR, versao);
 }
 
-/** Versão do cache: commit do deploy (Railway) ou, localmente, o horário do build. */
+/** Versão do cache: commit do deploy (Vercel) ou, localmente, o horário do build. */
 export function versaoDoBuild(env: Record<string, string | undefined>, agora: () => number = Date.now): string {
-  const sha = env.RAILWAY_GIT_COMMIT_SHA ?? env.GIT_COMMIT_SHA ?? "";
+  const sha = env.VERCEL_GIT_COMMIT_SHA ?? env.GIT_COMMIT_SHA ?? "";
   return /^[0-9a-f]{7,40}$/i.test(sha) ? `radarpa-${sha.slice(0, 12)}` : `radarpa-${agora()}`;
 }
