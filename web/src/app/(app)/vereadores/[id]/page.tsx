@@ -10,6 +10,8 @@ import { getVereador } from "@/lib/vereadores";
 import { getResumoVereador, VOTO_LABEL } from "@/lib/votacoes";
 import { getProducaoVereador } from "@/lib/proposicoes";
 import { VotoPlacar } from "@/components/VotoPlacar";
+import { AnaliseIA } from "@/components/AnaliseIA";
+import { iaConfigurada } from "@/lib/ia/gemini";
 
 const GWLEGIS = "https://cmpousoalegre.gwlegis.com.br";
 
@@ -150,6 +152,8 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
           </ul>
         </section>
       )}
+
+      {iaConfigurada() && <AnaliseIA vereadorId={v.id} />}
 
       <NotasDoAlvo tipoAlvo="vereador" alvoId={v.id} />
 
