@@ -8,8 +8,10 @@ vi.mock("@/lib/ia/contexto-vereador", () => ({ montarContexto }));
 
 const gerarTexto = vi.fn();
 let configurada = true;
+class IASobrecarregadaError extends Error {}
 vi.mock("@/lib/ia/gemini", () => ({
   IANaoConfiguradaError: class extends Error {},
+  IASobrecarregadaError,
   iaConfigurada: () => configurada,
   gerarTexto,
 }));
@@ -93,5 +95,12 @@ describe("POST /api/vereadores/[id]/ia", () => {
 
     gerarTexto.mockResolvedValueOnce(null);
     expect((await chamar("1", { modo: "resumo" })).status).toBe(502);
+  });
+
+  it("503 com mensagem clara quando a IA está sobrecarregada", async () => {
+    gerarTexto.mockRejectedValueOnce(new IASobrecarregadaError("x"));
+    const res = await chamar("1", { modo: "resumo" });
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/sobrecarregada/);
   });
 });

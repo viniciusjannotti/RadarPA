@@ -1,6 +1,6 @@
 import { json, requireApiSession } from "@/lib/api";
 import { montarContexto } from "@/lib/ia/contexto-vereador";
-import { gerarTexto, iaConfigurada } from "@/lib/ia/gemini";
+import { gerarTexto, IASobrecarregadaError, iaConfigurada } from "@/lib/ia/gemini";
 import { parsePedidoIA, type MensagemIA } from "@/lib/ia/pedido";
 import {
   instrucaoComDados,
@@ -61,6 +61,12 @@ export async function POST(request: Request, ctx: RouteContext<"/api/vereadores/
     if (!texto) return json({ error: "A IA não devolveu resposta. Tente reformular." }, { status: 502 });
     return json({ texto });
   } catch (err) {
+    if (err instanceof IASobrecarregadaError) {
+      return json(
+        { error: "A IA do Google está sobrecarregada agora. Tente de novo em alguns instantes." },
+        { status: 503 },
+      );
+    }
     console.error("[ia] falha ao gerar:", (err as Error).message);
     return json({ error: "Falha ao consultar a IA. Tente novamente." }, { status: 502 });
   }

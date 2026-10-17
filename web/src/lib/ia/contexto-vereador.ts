@@ -7,6 +7,7 @@ import { getResumoVereador, VOTO_LABEL } from "@/lib/votacoes";
 
 const LIMITE_VOTOS_RECENTES = 50;
 const LIMITE_DIVERGENTES = 30;
+const LIMITE_PROPOSICOES = 30;
 
 export type PlacarDetalhado = { sim: number; nao: number; abstencoes: number; ausencias: number };
 
@@ -92,7 +93,7 @@ export async function montarContexto(vereadorId: number): Promise<string | null>
 
   const [resumo, producao, divergentes, porVoto] = await Promise.all([
     getResumoVereador(v.id, LIMITE_VOTOS_RECENTES),
-    getProducaoVereador(v.id, 0),
+    getProducaoVereador(v.id, LIMITE_PROPOSICOES),
     buscarDivergentes(v.id),
     db.voto.groupBy({ by: ["voto"], where: { vereadorId: v.id }, _count: { _all: true } }),
   ]);
@@ -132,6 +133,14 @@ export async function montarContexto(vereadorId: number): Promise<string | null>
     l.push("\n## PRODUÇÃO LEGISLATIVA (proposições de autoria)");
     l.push(`Total: ${producao.total}`);
     for (const t of producao.porTipo) l.push(`- ${t.tipo}: ${t.total}`);
+  }
+
+  if (producao.recentes.length > 0) {
+    l.push(`\n## PROPOSIÇÕES DE AUTORIA MAIS RECENTES (até ${LIMITE_PROPOSICOES}, com ementa)`);
+    for (const pr of producao.recentes) {
+      const data = pr.dataProtocolo ? `[${dia(pr.dataProtocolo)}] ` : "";
+      l.push(`- ${data}${pr.titulo}${pr.ementa ? ` — ${pr.ementa}` : ""}`);
+    }
   }
 
   if (resumo.votosRecentes.length > 0) {

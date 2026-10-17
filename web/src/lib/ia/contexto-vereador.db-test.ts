@@ -48,6 +48,18 @@ async function seed() {
       { sessaoId: s2.id, vereadorId: ana.id, presente: false, situacao: "AUSENTE", fonteUrl: "x" },
     ],
   });
+  const prop = await db.proposicao.create({
+    data: {
+      tipo: "Projeto de Lei",
+      numero: 7,
+      ano: 2026,
+      titulo: "Projeto de Lei Nº 7/2026",
+      ementa: "Institui o programa de hortas comunitárias",
+      dataProtocolo: new Date("2026-03-01"),
+      fonteUrl: "x",
+    },
+  });
+  await db.proposicaoAutor.create({ data: { proposicaoId: prop.id, vereadorId: ana.id } });
   return { ana, caio, davi, vMaioria, vRecente };
 }
 
@@ -98,6 +110,9 @@ describe("montarContexto", () => {
     const ctx = (await montarContexto(ana.id))!;
     expect(ctx).toContain("Nome parlamentar: Ana");
     expect(ctx).toContain("Partido: PSD");
+    expect(ctx).toContain(
+      "[2026-03-01] Projeto de Lei Nº 7/2026 — Institui o programa de hortas comunitárias",
+    );
     expect(ctx).toContain("Presente em 1 de 2 sessões (50%)");
     expect(ctx).toContain("Favorável: 2");
     expect(ctx).toContain("Contrário: 1");

@@ -7,13 +7,14 @@ import { MAX_PERGUNTA, type MensagemIA } from "@/lib/ia/pedido";
 type Modo = "resumo" | "divergentes";
 
 // Os overrides só repassam `children`: o react-markdown também envia `node`, que não pode ir ao DOM.
-const titulo: Components["h3"] = ({ children }) => (
-  <h3 className="mt-3 font-semibold first:mt-0">{children}</h3>
+const secao: Components["h2"] = ({ children }) => (
+  <h3 className="mt-5 border-b border-line pb-1 text-base font-bold first:mt-0">{children}</h3>
 );
 const md: Components = {
-  h1: titulo,
-  h2: titulo,
-  h3: titulo,
+  h1: secao,
+  h2: secao,
+  h3: ({ children }) => <h4 className="mt-3 font-semibold">{children}</h4>,
+  strong: ({ children }) => <strong className="font-semibold text-fg">{children}</strong>,
   p: ({ children }) => <p className="mt-2 first:mt-0">{children}</p>,
   ul: ({ children }) => <ul className="mt-2 list-disc space-y-1 pl-5">{children}</ul>,
   ol: ({ children }) => <ol className="mt-2 list-decimal space-y-1 pl-5">{children}</ol>,

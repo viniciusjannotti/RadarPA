@@ -73,6 +73,8 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
         <Linha label="Situação">{v.status === "ativo" ? "Em exercício" : v.status}</Linha>
       </dl>
 
+      {iaConfigurada() && <AnaliseIA vereadorId={v.id} />}
+
       {resumo.presenca && (
         <section className="mt-6">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
@@ -152,8 +154,6 @@ async function Perfil({ params }: { params: Promise<{ id: string }> }) {
           </ul>
         </section>
       )}
-
-      {iaConfigurada() && <AnaliseIA vereadorId={v.id} />}
 
       <NotasDoAlvo tipoAlvo="vereador" alvoId={v.id} />
 

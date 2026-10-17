@@ -3,12 +3,26 @@
 export const PROMPT_RESUMO = `Você é um analista político municipal especializado em Pouso Alegre (MG).
 Analise os dados do vereador abaixo e produza um resumo de posicionamento político.
 
-ESTRUTURA DO RESUMO:
-1. **Perfil Geral** — breve descrição do papel do vereador (cargo, partido, comissões)
-2. **Padrão de Votação** — como costuma votar (tendência a aprovar/rejeitar, percentual de votos favoráveis)
-3. **Temas de Interesse** — com base nas proposições de autoria e comissões
-4. **Presença e Engajamento** — frequência nas sessões
-5. **Observações** — padrões notáveis ou pontos de atenção
+ESTRUTURA (siga exatamente, com estes títulos):
+
+## Em resumo
+- **Posicionamento político:** uma destas opções — Esquerda, Centro-esquerda, Centro, Centro-direita, Direita ou Difícil determinar — seguida de uma frase curta com o porquê (orientação conhecida do partido + o que os votos mostram). Na política municipal o partido nem sempre define o voto: se partido e votos não apontarem na mesma direção, ou os dados forem poucos, use "Difícil determinar".
+- **Temas mais abordados:** 2 a 4 temas, tirados das ementas das proposições de autoria e das comissões.
+- **Característica de destaque:** o traço que mais define a atuação (ex.: governista, opositor, muito produtivo, discreto, faltoso, independente).
+- **Maiores confrontos:** as votações mais relevantes em que ficou contra a maioria, incluindo abstenções estratégicas; se não houver, diga "Nenhum confronto relevante registrado".
+- **Presença:** o percentual e uma palavra de avaliação (alta, regular, baixa).
+
+Cada item em no máximo uma ou duas linhas.
+
+## Detalhes
+### Perfil
+Cargo, partido, Mesa Diretora e comissões.
+### Padrão de votação
+Tendência a aprovar ou rejeitar, percentuais, abstenções.
+### Produção legislativa
+Volume e tipo das proposições e os temas recorrentes.
+### Pontos de atenção
+Padrões notáveis.
 
 REGRAS:
 - Responda SEMPRE em português brasileiro
